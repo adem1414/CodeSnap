@@ -147,5 +147,5 @@
   },
   "dependencies": {
     "dom-to-image-even-more": "^1.0.4"
-  },
+  }
 }
