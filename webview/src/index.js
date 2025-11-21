@@ -14,6 +14,7 @@ const btnEdit = $('#codesnap-edit');
 const editingButtons = $('#codesnap-editing-buttons');
 const btnUnderline = $('#codesnap-underline');
 const btnHighlight = $('#codesnap-highlight');
+const highlightColorInput = $('#codesnap-highlight-color');
 const snippetNode = $('#snippet');
 
 let isEditing = false;
@@ -36,7 +37,7 @@ btnUnderline.addEventListener('click', () => {
 
 btnHighlight.addEventListener('click', () => {
     if (isEditing) {
-        document.execCommand('hiliteColor', false, '#fceb3c');
+        document.execCommand('hiliteColor', false, highlightColorInput.value);
     }
 });
 

@@ -121,6 +121,12 @@
           ],
           "default": "save",
           "description": "The behavior of the shutter button"
+        },
+        "codesnap.saveDirectory": {
+          "scope": "resource",
+          "type": "string",
+          "default": "",
+          "description": "The directory to save snippets to. If not set, a save dialog will be shown."
         }
       }
     }

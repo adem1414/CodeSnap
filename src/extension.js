@@ -3,6 +3,7 @@
 const vscode = require('vscode');
 const path = require('path');
 const { homedir } = require('os');
+const { stat } = require('fs').promises;
 const { readHtml, writeFile, getSettings } = require('./util');
 
 const getConfig = () => {
@@ -21,7 +22,8 @@ const getConfig = () => {
     'realLineNumbers',
     'transparentBackground',
     'target',
-    'shutterAction'
+    'shutterAction',
+    'saveDirectory'
   ]);
 
   const selection = editor && editor.selection;
@@ -60,13 +62,35 @@ const createPanel = async (context) => {
 };
 
 let lastUsedImageUri = vscode.Uri.file(path.resolve(homedir(), 'Desktop/code.png'));
-const saveImage = async (data) => {
+const saveImage = async (data, config) => {
+  const { saveDirectory } = config;
+  if (saveDirectory) {
+    try {
+      const stats = await stat(saveDirectory);
+      if (stats.isDirectory()) {
+        const fileName = `codesnap-${Date.now()}.png`;
+        const filePath = path.join(saveDirectory, fileName);
+        await writeFile(filePath, Buffer.from(data, 'base64'));
+        vscode.window.showInformationMessage(`Image saved to ${filePath}`);
+        return;
+      }
+    } catch (err) {
+      if (err.code === 'ENOENT') {
+        vscode.window.showWarningMessage(`Directory not found: ${saveDirectory}. Please select a location to save.`);
+      } else {
+        vscode.window.showErrorMessage(`Error accessing directory: ${err.message}`);
+      }
+    }
+  }
+
   const uri = await vscode.window.showSaveDialog({
     filters: { Images: ['png'] },
     defaultUri: lastUsedImageUri
   });
-  lastUsedImageUri = uri;
-  uri && writeFile(uri.fsPath, Buffer.from(data, 'base64'));
+  if (uri) {
+    lastUsedImageUri = uri;
+    await writeFile(uri.fsPath, Buffer.from(data, 'base64'));
+  }
 };
 
 const hasOneSelection = (selections) =>
@@ -74,10 +98,12 @@ const hasOneSelection = (selections) =>
 
 const runCommand = async (context) => {
   const panel = await createPanel(context);
+  let config;
 
   const update = async () => {
     await vscode.commands.executeCommand('editor.action.clipboardCopyWithSyntaxHighlightingAction');
-    panel.webview.postMessage({ type: 'update', ...getConfig() });
+    config = getConfig();
+    panel.webview.postMessage({ type: 'update', ...config });
   };
 
   const flash = () => panel.webview.postMessage({ type: 'flash' });
@@ -85,7 +111,7 @@ const runCommand = async (context) => {
   panel.webview.onDidReceiveMessage(async ({ type, data }) => {
     if (type === 'save') {
       flash();
-      await saveImage(data);
+      await saveImage(data, config);
     } else {
       vscode.window.showErrorMessage(`CodeSnap 📸: Unknown shutterAction "${type}"`);
     }
