@@ -10,17 +10,51 @@ const btnSave = $('#save');
 const btnCopy = $('#codesnap-copy');
 const btnDownload = $('#codesnap-download');
 
-let config;
-// bouton Copy -> déclenche une capture avec action copy
-btnCopy?.addEventListener('click', () => {
-  takeSnap({ ...config, shutterAction: 'copy' });
+const btnEdit = $('#codesnap-edit');
+const editingButtons = $('#codesnap-editing-buttons');
+const btnUnderline = $('#codesnap-underline');
+const btnHighlight = $('#codesnap-highlight');
+const snippetNode = $('#snippet');
+
+let isEditing = false;
+
+btnEdit.addEventListener('click', () => {
+    isEditing = !isEditing;
+    snippetNode.contentEditable = isEditing;
+    editingButtons.style.display = isEditing ? 'flex' : 'none';
+    btnEdit.textContent = isEditing ? 'Disable Editing' : 'Enable Editing';
+    if (isEditing) {
+        snippetNode.focus();
+    }
 });
 
-// bouton Save -> déclenche une capture avec action save/download
-btnDownload?.addEventListener('click', () => {
-  takeSnap({ ...config, shutterAction: 'download' });
+btnUnderline.addEventListener('click', () => {
+    if (isEditing) {
+        document.execCommand('underline', false, null);
+    }
 });
-btnSave.addEventListener('click', () => takeSnap(config));
+
+btnHighlight.addEventListener('click', () => {
+    if (isEditing) {
+        document.execCommand('hiliteColor', false, '#fceb3c');
+    }
+});
+
+let config;
+
+const snap = (action) => () => {
+  if (config) takeSnap({ ...config, shutterAction: action });
+};
+
+// bouton Copy -> déclenche une capture avec action copy
+btnCopy?.addEventListener('click', snap('copy'));
+
+// bouton Save -> déclenche une capture avec action save/download
+btnDownload?.addEventListener('click', snap('save'));
+
+btnSave.addEventListener('click', () => {
+  if (config) takeSnap(config);
+});
 
 document.addEventListener('copy', () => takeSnap({ ...config, shutterAction: 'copy' }));
 
