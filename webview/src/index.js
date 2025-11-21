@@ -1,14 +1,25 @@
-import { $, setVar } from './util.js';
 import { pasteCode } from './code.js';
-import { takeSnap, cameraFlashAnimation } from './snap.js';
+import { cameraFlashAnimation, takeSnap } from './snap.js';
+import { $, setVar } from './util.js';
 
 const navbarNode = $('#navbar');
 const windowControlsNode = $('#window-controls');
 const windowTitleNode = $('#window-title');
 const btnSave = $('#save');
+// 🔥 mes ajouts
+const btnCopy = $('#codesnap-copy');
+const btnDownload = $('#codesnap-download');
 
 let config;
+// bouton Copy -> déclenche une capture avec action copy
+btnCopy?.addEventListener('click', () => {
+  takeSnap({ ...config, shutterAction: 'copy' });
+});
 
+// bouton Save -> déclenche une capture avec action save/download
+btnDownload?.addEventListener('click', () => {
+  takeSnap({ ...config, shutterAction: 'download' });
+});
 btnSave.addEventListener('click', () => takeSnap(config));
 
 document.addEventListener('copy', () => takeSnap({ ...config, shutterAction: 'copy' }));
